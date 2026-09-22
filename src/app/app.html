@@ -1,0 +1,76 @@
+<header class="top">
+  <div>
+    <strong>LINCE</strong>
+    <span>Generador dinámico KYC · JSON → Smart Components</span>
+  </div>
+  <em [attr.data-risk]="kyc.risk()">{{ kyc.streaming() ? 'IA escribiendo reglas' : 'listo' }}</em>
+</header>
+
+<aside class="intake">
+  <h1>Mesa de onboarding</h1>
+  <p>El backend le pide a la IA las reglas. Angular no tiene el formulario quemado: solo un renderer.</p>
+
+  <label>
+    País
+    <select [ngModel]="kyc.country()" (ngModelChange)="kyc.country.set($event)">
+      @for (item of kyc.countries(); track item.id) {
+        <option [value]="item.id">{{ item.name }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Actividad
+    <select [ngModel]="kyc.activity()" (ngModelChange)="kyc.activity.set($event)">
+      @for (item of kyc.activities(); track item.id) {
+        <option [value]="item.id">{{ item.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Volumen mensual USD
+    <input
+      type="range"
+      min="200"
+      max="20000"
+      step="100"
+      [ngModel]="kyc.volumeUsd()"
+      (ngModelChange)="kyc.setVolume($event)"
+    />
+    <b>{{ kyc.volumeUsd() }}</b>
+  </label>
+
+  <label>
+    Riesgo
+    <select [ngModel]="kyc.riskOverride()" (ngModelChange)="kyc.setRisk($event)">
+      <option value="auto">Auto (país + volumen + giro)</option>
+      <option value="low">Forzar low</option>
+      <option value="mid">Forzar mid</option>
+      <option value="high">Forzar high</option>
+    </select>
+  </label>
+
+  <button type="button" (click)="kyc.generate()" [disabled]="kyc.streaming()">
+    {{ kyc.streaming() ? 'Generando…' : 'Pedir reglas a la IA' }}
+  </button>
+
+  <p class="hint">Prueba VE + high: pide foto de pasaporte. Marca PEP = sí y el JSON se reescribe al vuelo.</p>
+</aside>
+
+<main>
+  <lince-renderer />
+</main>
+
+<aside class="ia">
+  <h2>Salida de la IA</h2>
+  <ol>
+    @for (line of kyc.thinking(); track $index) {
+      <li>{{ line }}</li>
+    }
+  </ol>
+  @if (kyc.prompt()) {
+    <p class="prompt">{{ kyc.prompt() }}</p>
+  }
+  <pre>{{ kyc.jsonDraft() || '// el JSON del formulario aparece aquí' }}</pre>
+</aside>
